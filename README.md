@@ -1,0 +1,232 @@
+# Headscale Server on Docker
+
+[![Build Status](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml/badge.svg)](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml)
+
+A Docker image to run a [Headscale](https://github.com/juanfont/headscale) server — a self-hosted, open-source implementation of the Tailscale coordination server. Connect all your devices using the official Tailscale client apps, with your own server in control.
+
+## Download
+
+Get the trusted build from the [Docker Hub registry](https://hub.docker.com/r/hwdsl2/headscale-server/):
+
+```bash
+docker pull hwdsl2/headscale-server
+```
+
+Alternatively, you may download from [Quay.io](https://quay.io/repository/hwdsl2/headscale-server):
+
+```bash
+docker pull quay.io/hwdsl2/headscale-server
+docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
+```
+
+## Quick Start
+
+### Prerequisite
+
+A publicly reachable server with a domain name and TLS certificate is strongly recommended. See [TLS and reverse proxy](#tls-and-reverse-proxy) for setup options.
+
+### Using Docker
+
+Create an environment file. See [Environment variables](#environment-variables) for details.
+
+```bash
+# Edit the env file and set HS_SERVER_URL at minimum
+cp vpn.env.example vpn.env
+nano vpn.env
+```
+
+Run the container:
+
+```bash
+docker run \
+  --name headscale \
+  --restart=always \
+  -p 8080:8080/tcp \
+  -v headscale-data:/var/lib/headscale \
+  -v ./vpn.env:/vpn.env:ro \
+  -d hwdsl2/headscale-server
+```
+
+On first start, the container will:
+1. Generate the server configuration from your environment variables
+2. Create the initial user (default: `admin`)
+3. Print a **reusable pre-auth key** to the container logs
+
+Retrieve the initial pre-auth key from the logs:
+
+```bash
+docker logs headscale
+```
+
+Connect a device using the official [Tailscale client](https://tailscale.com/download):
+
+```bash
+tailscale up --login-server https://hs.example.com --authkey <key-from-logs>
+```
+
+### Using Docker Compose
+
+```bash
+cp vpn.env.example vpn.env
+nano vpn.env        # Set HS_SERVER_URL at minimum
+docker compose up -d
+docker compose logs headscale
+```
+
+Example `docker-compose.yml` (already included):
+
+```yaml
+services:
+  headscale:
+    image: hwdsl2/headscale-server
+    container_name: headscale
+    restart: always
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - headscale-data:/var/lib/headscale
+      - ./vpn.env:/vpn.env:ro
+
+volumes:
+  headscale-data:
+```
+
+## Managing the server
+
+Use the `hs_manage` helper to manage users and nodes from the host without entering the container.
+
+**List users:**
+
+```bash
+docker exec headscale hs_manage --listusers
+```
+
+**Add a user:**
+
+```bash
+docker exec headscale hs_manage --adduser alice
+```
+
+**Create a pre-auth key for a user:**
+
+```bash
+docker exec headscale hs_manage --createkey --user alice
+```
+
+**List all registered nodes:**
+
+```bash
+docker exec headscale hs_manage --listnodes
+```
+
+**List nodes for a specific user:**
+
+```bash
+docker exec headscale hs_manage --listnodes --user alice
+```
+
+**Delete a node by ID:**
+
+```bash
+docker exec headscale hs_manage --deletenode 3
+# Or skip the confirmation prompt:
+docker exec headscale hs_manage --deletenode 3 --yes
+```
+
+**List all pre-auth keys:**
+
+```bash
+docker exec headscale hs_manage --listkeys
+```
+
+**Show help:**
+
+```bash
+docker exec headscale hs_manage --help
+```
+
+## Environment variables
+
+All variables are optional. `HS_SERVER_URL` is strongly recommended for production use.
+
+| Variable | Default | Description |
+|---|---|---|
+| `HS_SERVER_URL` | auto-detected | URL that Tailscale clients connect to (e.g. `https://hs.example.com`). Must be HTTPS for full client functionality. |
+| `HS_LISTEN_PORT` | `8080` | TCP port the server listens on. |
+| `HS_METRICS_PORT` | `9090` | Prometheus metrics port. Set to empty to disable. |
+| `HS_BASE_DOMAIN` | `headscale.internal` | Base domain for MagicDNS hostnames (e.g. `myhost.headscale.internal`). Must not equal or be a parent domain of the hostname in `HS_SERVER_URL` (e.g. if `HS_SERVER_URL=https://hs.example.com`, do not use `example.com`). |
+| `HS_USERNAME` | `admin` | Name of the first user created on initial setup. |
+| `HS_DNS_SRV1` | `1.1.1.1` | Primary DNS server pushed to clients via MagicDNS. Accepts IPv4 or IPv6. |
+| `HS_DNS_SRV2` | `1.0.0.1` | Secondary DNS server pushed to clients via MagicDNS. |
+| `HS_LOG_LEVEL` | `info` | Log verbosity: `panic`, `fatal`, `error`, `warn`, `info`, `debug`, `trace`. |
+
+The configuration file is regenerated on each container start. To change a setting, update `vpn.env` and restart the container. The env file is bind-mounted into the container, so changes are picked up on every restart without recreating the container.
+
+## TLS and reverse proxy
+
+Tailscale clients work best with HTTPS. The recommended setup is to run a reverse proxy in front of Headscale that handles TLS termination, then set `HS_SERVER_URL` to your HTTPS URL.
+
+**Example with Caddy** (automatic TLS via Let's Encrypt):
+
+`Caddyfile`:
+```
+hs.example.com {
+  reverse_proxy headscale:8080
+}
+```
+
+**Example with nginx:**
+
+```nginx
+server {
+  listen 443 ssl;
+  server_name hs.example.com;
+
+  ssl_certificate     /path/to/cert.pem;
+  ssl_certificate_key /path/to/key.pem;
+
+  location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 3600s;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+}
+```
+
+Set `HS_SERVER_URL=https://hs.example.com` in your `vpn.env` and restart the container.
+
+**Ports to open in your firewall:**
+
+| Port | Protocol | Purpose |
+|---|---|---|
+| `8080` | TCP | Headscale coordination server (or your reverse proxy port) |
+| `443` | TCP | HTTPS (if using a reverse proxy) |
+| `9090` | TCP | Prometheus metrics (optional, internal use only by default) |
+
+## Upgrading
+
+To upgrade to a new Headscale release, update the `HS_VERSION` build ARG in the `Dockerfile` and rebuild, or pull the updated image from Docker Hub:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Your data in `/var/lib/headscale` is preserved in the named Docker volume and carries over automatically.
+
+## License
+
+**Note:** The software components inside the pre-built image (such as Headscale) are under the respective licenses chosen by their respective copyright holders. As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
+
+Copyright (C) 2026 Lin Song
+This work is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+**Headscale** is Copyright (c) 2020, Juan Font, and is distributed under the [BSD 3-Clause License](https://github.com/juanfont/headscale/blob/main/LICENSE).
+
+Tailscale® is a registered trademark of Tailscale Inc. This project is not affiliated with or endorsed by Tailscale Inc.
