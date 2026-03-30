@@ -1,8 +1,12 @@
+[English](README.md) | [简体中文](README-zh.md) | [繁體中文](README-zh-Hant.md) | [Русский](README-ru.md)
+
 # Headscale Server on Docker
 
 [![Build Status](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml/badge.svg)](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml)
 
 A Docker image to run a [Headscale](https://github.com/juanfont/headscale) server — a self-hosted, open-source implementation of the Tailscale coordination server. Connect all your devices using the official Tailscale client apps, with your own server in control.
+
+**Also available:** Docker images for [WireGuard](https://github.com/hwdsl2/docker-wireguard), [OpenVPN](https://github.com/hwdsl2/docker-openvpn), and [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server).
 
 ## Download
 
@@ -209,16 +213,21 @@ Set `HS_SERVER_URL=https://hs.example.com` in your `vpn.env` and restart the con
 | `443` | TCP | HTTPS (if using a reverse proxy) |
 | `9090` | TCP | Prometheus metrics (optional, internal use only by default) |
 
-## Upgrading
+## Update Docker Image
 
-To upgrade to a new Headscale release, update the `HS_VERSION` build ARG in the `Dockerfile` and rebuild, or pull the updated image from Docker Hub:
+To update the Docker image and container, first [download](#download) the latest version:
 
 ```bash
-docker compose pull
-docker compose up -d
+docker pull hwdsl2/headscale-server
 ```
 
-Your data in `/var/lib/headscale` is preserved in the named Docker volume and carries over automatically.
+If the Docker image is already up to date, you should see:
+
+```
+Status: Image is up to date for hwdsl2/headscale-server:latest
+```
+
+Otherwise, it will download the latest version. Remove and re-create the container using instructions from [Quick Start](#quick-start). Your data is preserved in the `headscale-data` volume.
 
 ## License
 
