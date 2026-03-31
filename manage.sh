@@ -30,7 +30,10 @@ Options:
   --listusers               list all users
   --listnodes  --user <n>   list nodes for a specific user
   --adduser    <name>       add a new user
+  --deleteuser <name>       delete a user (and all their nodes and keys)
   --deletenode <id>         delete a node by its numeric ID
+  --registernode <key>      register a node by its node key
+                            (requires --user <name>)
   --createkey  --user <n>   create a reusable pre-auth key for a user
   --listkeys                list all pre-auth keys
   -y, --yes                 assume "yes" for confirmation prompts
@@ -40,9 +43,12 @@ Examples:
   docker exec headscale hs_manage --listusers
   docker exec headscale hs_manage --listnodes
   docker exec headscale hs_manage --adduser alice
+  docker exec headscale hs_manage --registernode <key> --user alice
   docker exec headscale hs_manage --createkey --user alice
   docker exec headscale hs_manage --listkeys
-  docker exec headscale hs_manage --deletenode 3
+  docker exec -it headscale hs_manage --deleteuser alice
+  docker exec headscale hs_manage --deleteuser alice --yes
+  docker exec -it headscale hs_manage --deletenode 3
   docker exec headscale hs_manage --deletenode 3 --yes
 
 EOF
@@ -82,12 +88,15 @@ parse_args() {
   list_nodes=0
   list_users=0
   add_user=0
+  delete_user=0
   delete_node=0
+  register_node=0
   create_key=0
   list_keys=0
   assume_yes=0
   target_user=""
   target_node_id=""
+  target_node_key=""
   unsanitized_user=""
 
   while [ "$#" -gt 0 ]; do
@@ -105,9 +114,19 @@ parse_args() {
         unsanitized_user="$2"
         shift; shift
         ;;
+      --deleteuser)
+        delete_user=1
+        unsanitized_user="$2"
+        shift; shift
+        ;;
       --deletenode)
         delete_node=1
         target_node_id="$2"
+        shift; shift
+        ;;
+      --registernode)
+        register_node=1
+        target_node_key="$2"
         shift; shift
         ;;
       --createkey)
@@ -138,7 +157,7 @@ parse_args() {
 
 check_args() {
   local action_count
-  action_count=$((list_nodes + list_users + add_user + delete_node + create_key + list_keys))
+  action_count=$((list_nodes + list_users + add_user + delete_user + delete_node + register_node + create_key + list_keys))
 
   if [ "$action_count" -eq 0 ]; then
     show_usage
@@ -147,8 +166,8 @@ check_args() {
     show_usage "Specify only one action at a time."
   fi
 
-  # --adduser requires a name argument
-  if [ "$add_user" = 1 ]; then
+  # --adduser and --deleteuser require a name argument
+  if [ "$add_user" = 1 ] || [ "$delete_user" = 1 ]; then
     local sanitized
     sanitized=$(printf '%s' "$unsanitized_user" | \
       sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g')
@@ -172,6 +191,16 @@ check_args() {
     fi
     if ! printf '%s' "$target_node_id" | grep -Eq '^[0-9]+$'; then
       exiterr "Node ID must be a positive integer. Use '--listnodes' to find node IDs."
+    fi
+  fi
+
+  # --registernode requires a key and --user
+  if [ "$register_node" = 1 ]; then
+    if [ -z "$target_node_key" ]; then
+      exiterr "--registernode requires a node key. Copy the key shown by 'tailscale up'."
+    fi
+    if [ -z "$target_user" ]; then
+      exiterr "--registernode requires --user <name>. Use '--listusers' to find user names."
     fi
   fi
 }
@@ -215,6 +244,30 @@ do_add_user() {
   echo
 }
 
+do_delete_user() {
+  if [ "$assume_yes" != 1 ]; then
+    echo
+    printf "Delete user '%s' and all their nodes and keys? This cannot be undone. [y/N]: " "$target_user"
+    read -r confirm
+    case "$confirm" in
+      [yY][eE][sS]|[yY]) ;;
+      *) echo; echo "Deletion aborted."; echo; exit 1 ;;
+    esac
+  fi
+  echo
+  echo "Deleting user '$target_user'..."
+  if hs_cmd users delete --name "$target_user" 2>&1; then
+    echo
+    echo "User '$target_user' deleted."
+  else
+    echo
+    echo "Failed to delete user '$target_user'." >&2
+    echo "Use '--listusers' to verify the user name." >&2
+    exit 1
+  fi
+  echo
+}
+
 do_delete_node() {
   if [ "$assume_yes" != 1 ]; then
     echo
@@ -234,6 +287,21 @@ do_delete_node() {
     echo
     echo "Failed to delete node $target_node_id." >&2
     echo "Use '--listnodes' to verify the node ID." >&2
+    exit 1
+  fi
+  echo
+}
+
+do_register_node() {
+  echo
+  echo "Registering node for user '$target_user'..."
+  if hs_cmd nodes register --user "$target_user" --key "$target_node_key" 2>&1; then
+    echo
+    echo "Node registered successfully."
+  else
+    echo
+    echo "Failed to register node." >&2
+    echo "Make sure the node key and user name are correct." >&2
     exit 1
   fi
   echo
@@ -297,8 +365,18 @@ if [ "$add_user" = 1 ]; then
   exit 0
 fi
 
+if [ "$delete_user" = 1 ]; then
+  do_delete_user
+  exit 0
+fi
+
 if [ "$delete_node" = 1 ]; then
   do_delete_node
+  exit 0
+fi
+
+if [ "$register_node" = 1 ]; then
+  do_register_node
   exit 0
 fi
 
