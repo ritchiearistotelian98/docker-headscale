@@ -99,6 +99,12 @@ volumes:
 
 Используйте вспомогательный скрипт `hs_manage` для управления пользователями и узлами с хоста без входа в контейнер.
 
+**Зарегистрировать узел по его ключу:**
+
+```bash
+docker exec headscale hs_manage --registernode <key> --user admin
+```
+
 **Список пользователей:**
 
 ```bash
@@ -109,6 +115,14 @@ docker exec headscale hs_manage --listusers
 
 ```bash
 docker exec headscale hs_manage --adduser alice
+```
+
+**Удалить пользователя:**
+
+```bash
+docker exec -it headscale hs_manage --deleteuser alice
+# Или без запроса подтверждения:
+docker exec headscale hs_manage --deleteuser alice --yes
 ```
 
 **Создать ключ предварительной авторизации для пользователя:**
@@ -132,7 +146,7 @@ docker exec headscale hs_manage --listnodes --user alice
 **Удалить узел по ID:**
 
 ```bash
-docker exec headscale hs_manage --deletenode 3
+docker exec -it headscale hs_manage --deletenode 3
 # Или без запроса подтверждения:
 docker exec headscale hs_manage --deletenode 3 --yes
 ```
@@ -148,6 +162,8 @@ docker exec headscale hs_manage --listkeys
 ```bash
 docker exec headscale hs_manage --help
 ```
+
+Также можно выполнять команды Headscale напрямую с помощью `docker exec headscale headscale <команда>`. Доступные команды см. в [документации Headscale](https://headscale.net/).
 
 ## Переменные окружения
 
@@ -170,7 +186,14 @@ docker exec headscale hs_manage --help
 
 Клиенты Tailscale лучше всего работают с HTTPS. Рекомендуемая схема — запустить перед Headscale обратный прокси, обрабатывающий завершение TLS, затем задать `HS_SERVER_URL` равным вашему HTTPS-URL.
 
-**Пример с Caddy** (автоматический TLS через Let's Encrypt):
+Используйте один из следующих адресов для обращения к контейнеру Headscale из обратного прокси:
+
+- **`headscale:8080`** — если обратный прокси запущен как контейнер в **той же Docker-сети**, что и Headscale (например, определён в одном `docker-compose.yml`). Docker автоматически разрешает имя контейнера.
+- **`127.0.0.1:8080`** — если обратный прокси запущен **на хосте** и порт `8080` опубликован (файл `docker-compose.yml` по умолчанию публикует его).
+
+> **Примечание:** Не используйте внутренний IP-адрес контейнера, полученный через `docker inspect`. Этот адрес меняется при каждом пересоздании контейнера.
+
+**Пример с Caddy** (автоматический TLS через Let's Encrypt, обратный прокси в той же Docker-сети):
 
 `Caddyfile`:
 ```
@@ -179,7 +202,7 @@ hs.example.com {
 }
 ```
 
-**Пример с nginx:**
+**Пример с nginx** (обратный прокси на хосте):
 
 ```nginx
 server {

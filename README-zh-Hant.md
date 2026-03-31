@@ -99,6 +99,12 @@ volumes:
 
 使用 `hs_manage` 輔助腳本從宿主機管理使用者和節點，無需進入容器。
 
+**依節點金鑰註冊節點：**
+
+```bash
+docker exec headscale hs_manage --registernode <key> --user admin
+```
+
 **列出使用者：**
 
 ```bash
@@ -109,6 +115,14 @@ docker exec headscale hs_manage --listusers
 
 ```bash
 docker exec headscale hs_manage --adduser alice
+```
+
+**刪除使用者：**
+
+```bash
+docker exec -it headscale hs_manage --deleteuser alice
+# 或略過確認提示：
+docker exec headscale hs_manage --deleteuser alice --yes
 ```
 
 **為使用者建立預授權金鑰：**
@@ -132,7 +146,7 @@ docker exec headscale hs_manage --listnodes --user alice
 **依 ID 刪除節點：**
 
 ```bash
-docker exec headscale hs_manage --deletenode 3
+docker exec -it headscale hs_manage --deletenode 3
 # 或略過確認提示：
 docker exec headscale hs_manage --deletenode 3 --yes
 ```
@@ -148,6 +162,8 @@ docker exec headscale hs_manage --listkeys
 ```bash
 docker exec headscale hs_manage --help
 ```
+
+也可使用 `docker exec headscale headscale <命令>` 直接執行 Headscale 命令。可用命令請參閱 [Headscale 文件](https://headscale.net/)。
 
 ## 環境變數
 
@@ -170,7 +186,14 @@ docker exec headscale hs_manage --help
 
 Tailscale 客戶端在使用 HTTPS 時效果最佳。建議的設定是在 Headscale 前運行一個負責處理 TLS 終止的反向代理，然後將 `HS_SERVER_URL` 設定為你的 HTTPS URL。
 
-**使用 Caddy 的範例**（透過 Let's Encrypt 自動申請 TLS）：
+在反向代理中使用以下其中一個位址來連線 Headscale 容器：
+
+- **`headscale:8080`** — 如果反向代理作為容器運行在與 Headscale **相同的 Docker 網路**中（例如，在同一個 `docker-compose.yml` 中定義）。Docker 會自動解析容器名稱。
+- **`127.0.0.1:8080`** — 如果反向代理運行在**宿主機上**，且連接埠 `8080` 已發布（預設 `docker-compose.yml` 會發布該連接埠）。
+
+> **注意：** 請勿使用透過 `docker inspect` 取得的容器內部 IP 位址。該位址在每次重新建立容器時都會改變。
+
+**使用 Caddy 的範例**（透過 Let's Encrypt 自動申請 TLS，反向代理在相同的 Docker 網路中）：
 
 `Caddyfile`：
 ```
@@ -179,7 +202,7 @@ hs.example.com {
 }
 ```
 
-**使用 nginx 的範例：**
+**使用 nginx 的範例**（反向代理在宿主機上）：
 
 ```nginx
 server {

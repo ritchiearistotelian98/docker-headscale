@@ -99,6 +99,12 @@ volumes:
 
 Use the `hs_manage` helper to manage users and nodes from the host without entering the container.
 
+**Register a node by its node key:**
+
+```bash
+docker exec headscale hs_manage --registernode <key> --user admin
+```
+
 **List users:**
 
 ```bash
@@ -109,6 +115,14 @@ docker exec headscale hs_manage --listusers
 
 ```bash
 docker exec headscale hs_manage --adduser alice
+```
+
+**Delete a user:**
+
+```bash
+docker exec -it headscale hs_manage --deleteuser alice
+# Or skip the confirmation prompt:
+docker exec headscale hs_manage --deleteuser alice --yes
 ```
 
 **Create a pre-auth key for a user:**
@@ -132,7 +146,7 @@ docker exec headscale hs_manage --listnodes --user alice
 **Delete a node by ID:**
 
 ```bash
-docker exec headscale hs_manage --deletenode 3
+docker exec -it headscale hs_manage --deletenode 3
 # Or skip the confirmation prompt:
 docker exec headscale hs_manage --deletenode 3 --yes
 ```
@@ -148,6 +162,8 @@ docker exec headscale hs_manage --listkeys
 ```bash
 docker exec headscale hs_manage --help
 ```
+
+You can also run Headscale commands directly using `docker exec headscale headscale <command>`. Refer to the [Headscale documentation](https://headscale.net/) for available commands.
 
 ## Environment variables
 
@@ -170,7 +186,14 @@ The configuration file is regenerated on each container start. To change a setti
 
 Tailscale clients work best with HTTPS. The recommended setup is to run a reverse proxy in front of Headscale that handles TLS termination, then set `HS_SERVER_URL` to your HTTPS URL.
 
-**Example with Caddy** (automatic TLS via Let's Encrypt):
+Use one of the following addresses to reach the Headscale container from your reverse proxy:
+
+- **`headscale:8080`** — if your reverse proxy runs as a container in the **same Docker network** as Headscale (e.g. defined in the same `docker-compose.yml`). Docker resolves the container name automatically.
+- **`127.0.0.1:8080`** — if your reverse proxy runs **on the host** and port `8080` is published (the default `docker-compose.yml` publishes it).
+
+> **Note:** Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
+
+**Example with Caddy** (automatic TLS via Let's Encrypt, reverse proxy in the same Docker network):
 
 `Caddyfile`:
 ```
@@ -179,7 +202,7 @@ hs.example.com {
 }
 ```
 
-**Example with nginx:**
+**Example with nginx** (reverse proxy on the host):
 
 ```nginx
 server {
