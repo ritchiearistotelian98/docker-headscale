@@ -70,13 +70,13 @@ jobs:
             docker exec "$TEST_ID" hs_manage --listkeys
             docker exec "$TEST_ID" hs_manage --listnodes
             docker exec "$TEST_ID" hs_manage --deleteuser vpnuser --yes
-            docker exec "$TEST_ID" hs_manage --listusers | grep -qv 'vpnuser'
+            docker exec "$TEST_ID" hs_manage --listusers | grep -q 'vpnuser' && exit 1
           else
             docker exec "$TEST_ID" hs_manage --adduser testuser
             docker exec "$TEST_ID" hs_manage --listusers | grep -q 'testuser'
             docker exec "$TEST_ID" hs_manage --listnodes
             docker exec "$TEST_ID" hs_manage --deleteuser testuser --yes
-            docker exec "$TEST_ID" hs_manage --listusers | grep -qv 'testuser'
+            docker exec "$TEST_ID" hs_manage --listusers | grep -q 'testuser' && exit 1
           fi
 
           docker restart "$TEST_ID"
