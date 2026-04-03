@@ -35,13 +35,13 @@ docker run \
   --name headscale \
   --restart=always \
   -p 127.0.0.1:8080:8080/tcp \
-  -p 127.0.0.1:9090:9090/tcp \
   -v headscale-data:/var/lib/headscale \
   -v ./vpn.env:/vpn.env:ro \
   -d hwdsl2/headscale-server
 ```
 
-> **Note:** With the above command, port `8080` is bound to localhost only. A reverse proxy on the host that handles TLS and forwards to `127.0.0.1:8080` is required for Tailscale clients to connect. See [TLS and reverse proxy](#tls-and-reverse-proxy). To expose the port directly instead, replace `127.0.0.1:8080:8080` with `8080:8080`.
+> [!NOTE]
+> With the above command, port `8080` is bound to localhost only. A reverse proxy on the host that handles TLS and forwards to `127.0.0.1:8080` is required for Tailscale clients to connect. See [TLS and reverse proxy](#tls-and-reverse-proxy). To expose the port directly instead, replace `127.0.0.1:8080:8080` with `8080:8080`.
 
 On first start, the container will:
 1. Generate the server configuration from your environment variables
@@ -78,7 +78,7 @@ services:
     container_name: headscale
     restart: always
     ports:
-      - "8080:8080/tcp"
+      - "127.0.0.1:8080:8080/tcp"
     volumes:
       - headscale-data:/var/lib/headscale
       - ./vpn.env:/vpn.env:ro
@@ -140,7 +140,8 @@ Use one of the following addresses to reach the Headscale container from your re
 - **`headscale:8080`** — if your reverse proxy runs as a container in the **same Docker network** as Headscale (e.g. defined in the same `docker-compose.yml`). Docker resolves the container name automatically.
 - **`127.0.0.1:8080`** — if your reverse proxy runs **on the host** and port `8080` is published (the default `docker-compose.yml` publishes it).
 
-> **Note:** Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
+> [!NOTE]
+> Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
 
 **Example with [Caddy](https://caddyserver.com/docs/) ([Docker image](https://hub.docker.com/_/caddy))** (automatic TLS via Let's Encrypt, reverse proxy in the same Docker network):
 
@@ -183,7 +184,7 @@ Set `HS_SERVER_URL=https://hs.example.com` in your `vpn.env` and restart the con
 |---|---|---|
 | `8080` | TCP | Headscale coordination server (or your reverse proxy port) |
 | `443` | TCP | HTTPS (if using a reverse proxy) |
-| `9090` | TCP | Prometheus metrics (optional, internal use only by default) |
+| `9090` | TCP | Prometheus metrics (optional, not published by default) |
 
 ## Managing the server
 

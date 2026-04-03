@@ -4,7 +4,7 @@ services:
     container_name: headscale
     restart: always
     ports:
-      - "8080:8080/tcp"
+      - "127.0.0.1:8080:8080/tcp"
     volumes:
       - headscale-data:/var/lib/headscale
       - ./vpn.env:/vpn.env:ro
