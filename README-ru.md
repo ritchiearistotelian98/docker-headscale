@@ -12,7 +12,7 @@ Docker-образ для запуска сервера [Headscale](https://githu
 - Постоянное хранение данных через Docker volume
 - Поддержка нескольких архитектур: `linux/amd64`, `linux/arm64`
 
-**Также доступно:** Docker-образы для [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-ru.md), [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-ru.md), [OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-ru.md) и [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-ru.md).
+**Также доступно:** Docker-образы для [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-ru.md), [OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-ru.md), [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-ru.md) и [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-ru.md).
 
 ## Быстрый старт
 
@@ -40,8 +40,7 @@ docker run \
   -d hwdsl2/headscale-server
 ```
 
-> [!NOTE]
-> При использовании приведённой команды порт `8080` привязан только к локальному хосту. Для подключения клиентов Tailscale необходим обратный прокси на хосте, который обрабатывает TLS и перенаправляет трафик на `127.0.0.1:8080`. См. раздел [TLS и обратный прокси](#tls-и-обратный-прокси). Чтобы вместо этого открыть порт напрямую, замените `127.0.0.1:8080:8080` на `8080:8080`.
+**Примечание:** При использовании приведённой команды порт `8080` привязан только к локальному хосту. Для подключения клиентов Tailscale необходим обратный прокси на хосте, который обрабатывает TLS и перенаправляет трафик на `127.0.0.1:8080`. См. раздел [TLS и обратный прокси](#tls-и-обратный-прокси). Чтобы вместо этого открыть порт напрямую, замените `127.0.0.1:8080:8080` на `8080:8080`.
 
 При первом запуске контейнер:
 1. Сгенерирует конфигурацию сервера из переменных окружения
@@ -137,6 +136,8 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 | `HS_DNS_SRV2` | `1.0.0.1` | Резервный DNS-сервер, передаваемый клиентам через MagicDNS. |
 | `HS_LOG_LEVEL` | `info` | Уровень подробности логов: `panic`, `fatal`, `error`, `warn`, `info`, `debug`, `trace`. |
 
+**Примечание:** В файле `env` можно заключать значения в одинарные кавычки, например `VAR='значение'`. Не добавляйте пробелы вокруг `=`.
+
 Файл конфигурации пересоздаётся при каждом запуске контейнера. Для изменения настройки обновите `vpn.env` и перезапустите контейнер. Файл env монтируется в контейнер через bind mount, поэтому изменения применяются при каждом перезапуске без пересоздания контейнера.
 
 ## TLS и обратный прокси
@@ -148,8 +149,7 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 - **`headscale:8080`** — если обратный прокси запущен как контейнер в **той же Docker-сети**, что и Headscale (например, определён в одном `docker-compose.yml`). Docker автоматически разрешает имя контейнера.
 - **`127.0.0.1:8080`** — если обратный прокси запущен **на хосте** и порт `8080` опубликован (файл `docker-compose.yml` по умолчанию публикует его).
 
-> [!NOTE]
-> Не используйте внутренний IP-адрес контейнера, полученный через `docker inspect`. Этот адрес меняется при каждом пересоздании контейнера.
+**Примечание:** Не используйте внутренний IP-адрес контейнера, полученный через `docker inspect`. Этот адрес меняется при каждом пересоздании контейнера.
 
 **Пример с [Caddy](https://caddyserver.com/docs/) ([Docker-образ](https://hub.docker.com/_/caddy))** (автоматический TLS через Let's Encrypt, обратный прокси в той же Docker-сети):
 

@@ -12,7 +12,7 @@
 - 使用 Docker 卷實現資料持久化
 - 多架構支援：`linux/amd64`、`linux/arm64`
 
-**另提供：** [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-zh-Hant.md)、[WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh-Hant.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh-Hant.md) 與 [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh-Hant.md) 的 Docker 映像。
+**另提供：** [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh-Hant.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh-Hant.md)、[IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh-Hant.md) 與 [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-zh-Hant.md) 的 Docker 映像。
 
 ## 快速開始
 
@@ -40,8 +40,7 @@ docker run \
   -d hwdsl2/headscale-server
 ```
 
-> [!NOTE]
-> 使用上述命令時，連接埠 `8080` 僅綁定至本地主機。需要在宿主機上運行一個處理 TLS 並將流量轉發至 `127.0.0.1:8080` 的反向代理，Tailscale 客戶端才能連線。請參閱 [TLS 與反向代理](#tls-與反向代理)。如需直接對外公開連接埠，請將 `127.0.0.1:8080:8080` 替換為 `8080:8080`。
+**注：** 使用上述命令時，連接埠 `8080` 僅綁定至本地主機。需要在宿主機上運行一個處理 TLS 並將流量轉發至 `127.0.0.1:8080` 的反向代理，Tailscale 客戶端才能連線。請參閱 [TLS 與反向代理](#tls-與反向代理)。如需直接對外公開連接埠，請將 `127.0.0.1:8080:8080` 替換為 `8080:8080`。
 
 首次啟動時，容器將：
 1. 根據環境變數產生伺服器設定
@@ -137,6 +136,8 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 | `HS_DNS_SRV2` | `1.0.0.1` | 透過 MagicDNS 推送給客戶端的次要 DNS 伺服器。 |
 | `HS_LOG_LEVEL` | `info` | 日誌詳細程度：`panic`、`fatal`、`error`、`warn`、`info`、`debug`、`trace`。 |
 
+**注：** 在 `env` 檔案中，可以用單引號括住變數值，例如 `VAR='值'`。不要在 `=` 周圍加上空格。
+
 每次容器啟動時會重新產生設定檔。修改設定時，更新 `vpn.env` 並重新啟動容器即可。env 檔案以綁定掛載方式掛載至容器中，每次重新啟動時自動讀取變更，無需重新建立容器。
 
 ## TLS 與反向代理
@@ -148,8 +149,7 @@ Tailscale 客戶端在使用 HTTPS 時效果最佳。建議的設定是在 Heads
 - **`headscale:8080`** — 如果反向代理作為容器運行在與 Headscale **相同的 Docker 網路**中（例如，在同一個 `docker-compose.yml` 中定義）。Docker 會自動解析容器名稱。
 - **`127.0.0.1:8080`** — 如果反向代理運行在**宿主機上**，且連接埠 `8080` 已發布（預設 `docker-compose.yml` 會發布該連接埠）。
 
-> [!NOTE]
-> 請勿使用透過 `docker inspect` 取得的容器內部 IP 位址。該位址在每次重新建立容器時都會改變。
+**注：** 請勿使用透過 `docker inspect` 取得的容器內部 IP 位址。該位址在每次重新建立容器時都會改變。
 
 **使用 [Caddy](https://caddyserver.com/docs/)（[Docker 映像檔](https://hub.docker.com/_/caddy)）的範例**（透過 Let's Encrypt 自動申請 TLS，反向代理在相同的 Docker 網路中）：
 

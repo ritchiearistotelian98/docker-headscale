@@ -12,7 +12,7 @@ A Docker image to run a [Headscale](https://github.com/juanfont/headscale) serve
 - Persistent data via a Docker volume
 - Multi-arch: `linux/amd64`, `linux/arm64`
 
-**Also available:** Docker images for [LiteLLM](https://github.com/hwdsl2/docker-litellm), [WireGuard](https://github.com/hwdsl2/docker-wireguard), [OpenVPN](https://github.com/hwdsl2/docker-openvpn) and [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server).
+**Also available:** Docker images for [WireGuard](https://github.com/hwdsl2/docker-wireguard), [OpenVPN](https://github.com/hwdsl2/docker-openvpn), [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server) and [LiteLLM](https://github.com/hwdsl2/docker-litellm).
 
 ## Quick start
 
@@ -40,8 +40,7 @@ docker run \
   -d hwdsl2/headscale-server
 ```
 
-> [!NOTE]
-> With the above command, port `8080` is bound to localhost only. A reverse proxy on the host that handles TLS and forwards to `127.0.0.1:8080` is required for Tailscale clients to connect. See [TLS and reverse proxy](#tls-and-reverse-proxy). To expose the port directly instead, replace `127.0.0.1:8080:8080` with `8080:8080`.
+**Note:** With the above command, port `8080` is bound to localhost only. A reverse proxy on the host that handles TLS and forwards to `127.0.0.1:8080` is required for Tailscale clients to connect. See [TLS and reverse proxy](#tls-and-reverse-proxy). To expose the port directly instead, replace `127.0.0.1:8080:8080` with `8080:8080`.
 
 On first start, the container will:
 1. Generate the server configuration from your environment variables
@@ -137,6 +136,8 @@ All variables are optional. `HS_SERVER_URL` is strongly recommended for producti
 | `HS_DNS_SRV2` | `1.0.0.1` | Secondary DNS server pushed to clients via MagicDNS. |
 | `HS_LOG_LEVEL` | `info` | Log verbosity: `panic`, `fatal`, `error`, `warn`, `info`, `debug`, `trace`. |
 
+**Note:** In your `env` file, you may enclose values in single quotes, e.g. `VAR='value'`. Do not add spaces around `=`.
+
 The configuration file is regenerated on each container start. To change a setting, update `vpn.env` and restart the container. The env file is bind-mounted into the container, so changes are picked up on every restart without recreating the container.
 
 ## TLS and reverse proxy
@@ -148,8 +149,7 @@ Use one of the following addresses to reach the Headscale container from your re
 - **`headscale:8080`** — if your reverse proxy runs as a container in the **same Docker network** as Headscale (e.g. defined in the same `docker-compose.yml`). Docker resolves the container name automatically.
 - **`127.0.0.1:8080`** — if your reverse proxy runs **on the host** and port `8080` is published (the default `docker-compose.yml` publishes it).
 
-> [!NOTE]
-> Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
+**Note:** Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
 
 **Example with [Caddy](https://caddyserver.com/docs/) ([Docker image](https://hub.docker.com/_/caddy))** (automatic TLS via Let's Encrypt, reverse proxy in the same Docker network):
 
