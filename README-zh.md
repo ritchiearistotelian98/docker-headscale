@@ -12,7 +12,7 @@
 - 使用 Docker 卷实现数据持久化
 - 多架构支持：`linux/amd64`、`linux/arm64`
 
-**另提供：** [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh.md) 和 [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh.md) 的 Docker 镜像。
+**另提供：** [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-zh.md)、[WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh.md) 和 [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh.md) 的 Docker 镜像。
 
 ## 快速开始
 
@@ -97,14 +97,6 @@ volumes:
 
 另外，你也可以在不使用 Docker 的情况下[安装 Headscale](https://github.com/hwdsl2/headscale-install/blob/main/README-zh.md)。要了解更多有关如何使用本镜像的信息，请继续阅读以下部分。
 
-## 客户端配置
-
-有关连接客户端的说明，请参阅 Headscale 文档：
-
-- [Android](https://headscale.net/stable/usage/connect/android/)
-- [Apple（iOS / macOS）](https://headscale.net/stable/usage/connect/apple/)
-- [Windows](https://headscale.net/stable/usage/connect/windows/)
-
 ## 下载
 
 从 [Docker Hub 镜像仓库](https://hub.docker.com/r/hwdsl2/headscale-server/)获取镜像：
@@ -121,6 +113,14 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 ```
 
 支持平台：`linux/amd64` 和 `linux/arm64`。
+
+## 客户端配置
+
+有关连接客户端的说明，请参阅 Headscale 文档：
+
+- [Android](https://headscale.net/stable/usage/connect/android/)
+- [Apple（iOS / macOS）](https://headscale.net/stable/usage/connect/apple/)
+- [Windows](https://headscale.net/stable/usage/connect/windows/)
 
 ## 环境变量
 
@@ -279,6 +279,15 @@ Status: Image is up to date for hwdsl2/headscale-server:latest
 ```
 
 否则将下载最新版本。按照[快速开始](#快速开始)中的说明删除并重新创建容器。数据保存在 `headscale-data` 卷中。
+
+## 技术细节
+
+- 基础镜像：`alpine:3.23`
+- Headscale：0.28.0
+- 数据目录：`/var/lib/headscale`（Docker 卷）
+- 配置文件：每次容器启动时从 `vpn.env` 重新生成；更新 `vpn.env` 并重启容器即可应用更改（无需重新创建容器）
+- 端口：`8080/tcp`（协调服务器），`9090/tcp`（Prometheus 指标，可选）
+- 支持平台：`linux/amd64`、`linux/arm64`
 
 ## 授权协议
 

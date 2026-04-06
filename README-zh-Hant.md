@@ -12,7 +12,7 @@
 - 使用 Docker 卷實現資料持久化
 - 多架構支援：`linux/amd64`、`linux/arm64`
 
-**另提供：** [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh-Hant.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh-Hant.md) 與 [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh-Hant.md) 的 Docker 映像。
+**另提供：** [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-zh-Hant.md)、[WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-zh-Hant.md)、[OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-zh-Hant.md) 與 [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-zh-Hant.md) 的 Docker 映像。
 
 ## 快速開始
 
@@ -97,14 +97,6 @@ volumes:
 
 另外，你也可以在不使用 Docker 的情況下[安裝 Headscale](https://github.com/hwdsl2/headscale-install/blob/main/README-zh-Hant.md)。若要了解更多關於如何使用本映像檔的資訊，請繼續閱讀以下部分。
 
-## 客戶端設定
-
-有關連線客戶端的說明，請參閱 Headscale 文件：
-
-- [Android](https://headscale.net/stable/usage/connect/android/)
-- [Apple（iOS / macOS）](https://headscale.net/stable/usage/connect/apple/)
-- [Windows](https://headscale.net/stable/usage/connect/windows/)
-
 ## 下載
 
 從 [Docker Hub 映像檔倉庫](https://hub.docker.com/r/hwdsl2/headscale-server/)取得映像檔：
@@ -121,6 +113,14 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 ```
 
 支援平台：`linux/amd64` 和 `linux/arm64`。
+
+## 客戶端設定
+
+有關連線客戶端的說明，請參閱 Headscale 文件：
+
+- [Android](https://headscale.net/stable/usage/connect/android/)
+- [Apple（iOS / macOS）](https://headscale.net/stable/usage/connect/apple/)
+- [Windows](https://headscale.net/stable/usage/connect/windows/)
 
 ## 環境變數
 
@@ -279,6 +279,15 @@ Status: Image is up to date for hwdsl2/headscale-server:latest
 ```
 
 否則將下載最新版本。依照[快速開始](#快速開始)中的說明刪除並重新建立容器。資料保存在 `headscale-data` 卷中。
+
+## 技術細節
+
+- 基礎映像檔：`alpine:3.23`
+- Headscale：0.28.0
+- 資料目錄：`/var/lib/headscale`（Docker 卷）
+- 設定檔：每次容器啟動時從 `vpn.env` 重新生成；更新 `vpn.env` 並重新啟動容器即可套用變更（無需重新建立容器）
+- 連接埠：`8080/tcp`（協調伺服器），`9090/tcp`（Prometheus 指標，選用）
+- 支援平台：`linux/amd64`、`linux/arm64`
 
 ## 授權條款
 

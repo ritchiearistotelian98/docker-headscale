@@ -12,7 +12,7 @@ Docker-образ для запуска сервера [Headscale](https://githu
 - Постоянное хранение данных через Docker volume
 - Поддержка нескольких архитектур: `linux/amd64`, `linux/arm64`
 
-**Также доступно:** Docker-образы для [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-ru.md), [OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-ru.md) и [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-ru.md).
+**Также доступно:** Docker-образы для [LiteLLM](https://github.com/hwdsl2/docker-litellm/blob/main/README-ru.md), [WireGuard](https://github.com/hwdsl2/docker-wireguard/blob/main/README-ru.md), [OpenVPN](https://github.com/hwdsl2/docker-openvpn/blob/main/README-ru.md) и [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server/blob/master/README-ru.md).
 
 ## Быстрый старт
 
@@ -97,14 +97,6 @@ volumes:
 
 В качестве альтернативы вы можете [настроить Headscale без Docker](https://github.com/hwdsl2/headscale-install/blob/main/README-ru.md). Чтобы узнать больше о том, как использовать этот образ, прочитайте разделы ниже.
 
-## Настройка клиентов
-
-Инструкции по подключению клиентов см. в документации Headscale:
-
-- [Android](https://headscale.net/stable/usage/connect/android/)
-- [Apple (iOS / macOS)](https://headscale.net/stable/usage/connect/apple/)
-- [Windows](https://headscale.net/stable/usage/connect/windows/)
-
 ## Загрузка
 
 Получите образ из [реестра Docker Hub](https://hub.docker.com/r/hwdsl2/headscale-server/):
@@ -121,6 +113,14 @@ docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
 ```
 
 Поддерживаемые платформы: `linux/amd64` и `linux/arm64`.
+
+## Настройка клиентов
+
+Инструкции по подключению клиентов см. в документации Headscale:
+
+- [Android](https://headscale.net/stable/usage/connect/android/)
+- [Apple (iOS / macOS)](https://headscale.net/stable/usage/connect/apple/)
+- [Windows](https://headscale.net/stable/usage/connect/windows/)
 
 ## Переменные окружения
 
@@ -279,6 +279,15 @@ Status: Image is up to date for hwdsl2/headscale-server:latest
 ```
 
 В противном случае будет загружена последняя версия. Удалите и пересоздайте контейнер, следуя инструкциям из раздела [Быстрый старт](#быстрый-старт). Ваши данные сохранены в volume `headscale-data`.
+
+## Технические детали
+
+- Базовый образ: `alpine:3.23`
+- Headscale: 0.28.0
+- Каталог данных: `/var/lib/headscale` (Docker volume)
+- Конфигурация: генерируется из `vpn.env` при каждом запуске контейнера; чтобы применить изменения, обновите `vpn.env` и перезапустите контейнер (пересоздание контейнера не требуется)
+- Порты: `8080/tcp` (координационный сервер), `9090/tcp` (метрики Prometheus, необязательно)
+- Платформы: `linux/amd64`, `linux/arm64`
 
 ## Лицензия
 
